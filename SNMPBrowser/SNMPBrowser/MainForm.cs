@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using SnmpSharpNet;
 using SNMPBrowser.Properties;
+using System.Text;
 
 namespace SNMPBrowser {
     public partial class MainForm : Form {
@@ -57,13 +58,24 @@ namespace SNMPBrowser {
             }
             else {
                 foreach (KeyValuePair<Oid, AsnType> entry in result) {
-                    if (entry.Value.ToString().Equals("Null")) {
+                    if (entry.Value.ToString().Equals("Null"))
+                    {
                         ErrorMessageBox.Show("Request failed.");
                     }
-                    else {
-                         target.Rows.Add(entry.Key.ToString(), entry.Value.ToString(),
+                    else
+                    {
+                        if (((OctetString)entry.Value).IsHex)
+                        {
+                            byte[] bs = ((OctetString)entry.Value).ToArray();
+                            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                            target.Rows.Add(entry.Key.ToString(), Encoding.GetEncoding("GBK").GetString(bs),
                                          SnmpConstants.GetTypeName(entry.Value.Type), DateTime.Now.ToLongTimeString());
+                        }
+                        else { 
+                        target.Rows.Add(entry.Key.ToString(), entry.Value.ToString(),
+                                     SnmpConstants.GetTypeName(entry.Value.Type), DateTime.Now.ToLongTimeString());
                     }
+                }
                 }
             }
         }
